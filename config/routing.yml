@@ -1,0 +1,19 @@
+fpPaymentPayPalPlugin_callback:
+  url:   /fpPaymentPayPal/callback
+  param: { module: fpPaymentPayPal, action: callback}
+  
+fpPaymentPayPalPlugin_cancelled:
+  url:   /fpPaymentPayPal/cancelled
+  param: { module: fpPaymentPayPal, action: cancelled}
+  
+fpPaymentPayPalPlugin_success:
+  url:   /fpPaymentPayPal/success
+  param: { module: fpPaymentPayPal, action: success}
+
+fpPaymentPayPalPlugin_error:
+  url:   /fpPaymentPayPal/error
+  param: { module: fpPaymentPayPal, action: error}
+  
+#fpPaymentPayPalPlugin_receipt:
+#  url:   /PayPal/receipt
+#  param: { module: PayPal, action: receipt}

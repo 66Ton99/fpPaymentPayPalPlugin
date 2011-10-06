@@ -1,0 +1,58 @@
+fpPaymentPaypal:
+  actAs:
+    Timestampable: ~
+  columns:
+    order_id:
+      type:    integer
+      notnull: true
+    mc_gross:               varchar(255)
+    protection_eligibility: varchar(255)
+    address_status:         varchar(255)
+    item_number1:           varchar(255)
+    payer_id:               varchar(255)
+    tax:                    varchar(255)
+    address_street:         varchar(255)
+    payment_date:           varchar(255)
+    payment_status:         varchar(255)
+    charset:                varchar(255)
+    address_zip:            varchar(255)
+    mc_shipping:            varchar(255)
+    mc_handling:            varchar(255)
+    first_name:             varchar(255)
+    address_country_code:   varchar(255)
+    address_name:           varchar(255)
+    notify_version:         varchar(255)
+    custom:                 varchar(255)
+    payer_status:           varchar(255)
+    business:               varchar(255)
+    address_country:        varchar(255)
+    num_cart_items:         varchar(255)
+    mc_handling1:           varchar(255)
+    address_city:           varchar(255)
+    verify_sign:            varchar(255)
+    payer_email:            varchar(255)
+    mc_shipping1:           varchar(255)
+    tax1:                   varchar(255)
+    txn_id:                 varchar(255)
+    payment_type:           varchar(255)
+    last_name:              varchar(255)
+    address_state:          varchar(255)
+    item_name1:             varchar(255)
+    receiver_email:         varchar(255)
+    quantity1:              varchar(255)
+    receiver_id:            varchar(255)
+    pending_reason:         varchar(255)
+    txn_type:               varchar(255)
+    mc_gross_1:             varchar(255)
+    mc_currency:            varchar(255)
+    residence_country:      varchar(255)
+    test_ipn:               varchar(255)
+    transaction_subject:    varchar(255)
+    payment_gross:          varchar(255)
+    response:
+      type:                 string
+  relations:
+    fpPaymentOrder:
+      local:    order_id
+      foreign:  id
+      onDelete: cascade
