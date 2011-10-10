@@ -33,13 +33,13 @@ class fpPaymentPayPalActions extends sfActions
   {
     fpPaymentContext::getInstance()->getPayPal()->getLoger()->addArray($request->getParameterHolder()->getAll(), 'Cancelled');
     $id = (int)$request->getParameter('orderId');
-    $order = fpPaymentOrderTable::getInstance()->findOneByIdAndStatus($id, fpPaymentOrder::STATUTS_IN_PROCESS);
+    $order = fpPaymentOrderTable::getInstance()->findOneByIdAndStatus($id, fpPaymentOrderStatusEnum::IN_PROCESS);
 
     if (empty($order) || !$order->getId()) {
       fpPaymentContext::getInstance()->getPayPal()->getLoger()->add("Transaction '{$id}' not found", 'CANCELLED');
     } else {
       $order->setType(fpPaymentPaypal::NAME);
-      $order->setStatus(fpPaymentOrder::STATUTS_CANCELLED);
+      $order->setStatus(fpPaymentOrderStatusEnum::CANCELLED);
       $order->save();
       
       $paypal = new fpPaymentPaypal();
@@ -63,7 +63,7 @@ class fpPaymentPayPalActions extends sfActions
     
     $payPal->getLoger()->addArray($params, 'Callback');
     $id = (int)$request->getParameter('invoice');
-    $order = fpPaymentOrderTable::getInstance()->findOneByIdAndStatus($id, fpPaymentOrder::STATUTS_NEW);
+    $order = fpPaymentOrderTable::getInstance()->findOneByIdAndStatus($id, fpPaymentOrderStatusEnum::NEWONE);
     
     if (empty($order)) {
       $payPal->getLoger()->add('FAIL', 'CALLBACK');
@@ -71,7 +71,7 @@ class fpPaymentPayPalActions extends sfActions
     }
     
     $order->setType(fpPaymentPaypal::NAME);
-    $order->setStatus(fpPaymentOrder::STATUTS_IN_PROCESS);
+    $order->setStatus(fpPaymentOrderStatusEnum::IN_PROCESS);
     $order->save();
     
     unset(
@@ -91,10 +91,10 @@ class fpPaymentPayPalActions extends sfActions
     $paypalIpn->setData($params);
     $paypalIpn->processNotifyValidate();
     if ($paypalIpn->isVerified()) {
-      $order->setStatus(fpPaymentOrder::STATUTS_SUCCESS);
+      $order->setStatus(fpPaymentOrderStatusEnum::SUCCESS);
       $order->save();
     } else {
-      $order->setStatus(fpPaymentOrder::STATUTS_FAIL);
+      $order->setStatus(fpPaymentOrderStatusEnum::FAIL);
       $order->save();
     }
     die('OK');

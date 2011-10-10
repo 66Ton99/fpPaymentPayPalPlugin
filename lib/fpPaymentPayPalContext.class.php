@@ -19,8 +19,8 @@ class fpPaymentPayPalContext extends fpPaymentMethodContext
    */
   public function __construct()
   {
-    $this->getContext()->getDispatcher()->connect('fp_payment.on_process', array($this, 'addItemsToValues'));
     $this->getContext()->getDispatcher()->connect('fp_payment_order.after_create', array($this, 'addOrderToValues'));
+    $this->getContext()->getDispatcher()->connect('fp_payment.on_process', array($this, 'addItemsToValues'));
     parent::__construct();
   }
   
@@ -83,7 +83,7 @@ class fpPaymentPayPalContext extends fpPaymentMethodContext
     $values['invoice'] = $order->getId();
     $values['payer_id'] = $context->getUser()->getId();
     $order->setType(static::NAME);
-    $order->setStatus(fpPaymentOrder::STATUTS_NEW);
+    $order->setStatus(fpPaymentOrderStatusEnum::IN_PROCESS);
     $order->save();
   }  
   
