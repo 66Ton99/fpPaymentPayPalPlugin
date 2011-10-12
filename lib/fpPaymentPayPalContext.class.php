@@ -56,13 +56,20 @@ class fpPaymentPayPalContext extends fpPaymentMethodContext
     $context = $event['context'];
     $values = $event['values'];
     $i = 1;
+    $taxes = 0.0;
     /* @var $val fpPaymentOrderItem */
     foreach ($context->getOrderModel()->getFpPaymentOrderItem() as $val) {
       $values['amount_' . $i] = $val->getPrice();
       $values['item_number_' . $i] = $val->getObjectId();
       $values['item_name_' . $i] = $val->getName();
       $values['quantity_' . $i] = $val->getQuantity();
+      if ($tax = $val->getTax()) {
+        $taxes += $tax;
+      }
       $i++;
+    }
+    if (!empty($taxes)) {
+      $values['tax_cart'] = $taxes;
     }
     $values['currency_code'] = $context->getOrderModel()->getCurrency();
   }
@@ -81,7 +88,7 @@ class fpPaymentPayPalContext extends fpPaymentMethodContext
     $order = $context->getOrderModel();
     $values = $event['values'];
     $values['invoice'] = $order->getId();
-    $values['payer_id'] = $context->getUser()->getId();
+    $values['payer_id'] = $context->getCustomer()->getId();
     $order->setType(static::NAME);
     $order->setStatus(fpPaymentOrderStatusEnum::IN_PROCESS);
     $order->save();
@@ -96,5 +103,4 @@ class fpPaymentPayPalContext extends fpPaymentMethodContext
     $action->forward(sfConfig::get('fp_payment_paypal_page_error_module', 'fpPaymentPayPal'),
                      sfConfig::get('fp_payment_paypal_page_error_action', 'error'));
   }
-  
 }
