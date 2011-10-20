@@ -30,16 +30,7 @@ class fpPaymentPayPalContext extends fpPaymentMethodContext
    */
   public function renderInfoPage(sfAction &$action, sfRequest $request)
   {
-    if (fpPaymentContext::getInstance()
-          ->getPayPal()
-          ->doProcess(array())
-          ->getIpn()
-          ->hasErrors())
-    {
-      $action->redirect('@fpPaymentPayPalPlugin_error', 404);
-    } else {
-      $action->redirect($this->getContext()->getPayPal()->getIpn()->getUrl());
-    }
+    $action->redirect('@fpPaymentPlugin_orderReview');
     return sfView::NONE;
   }
   
