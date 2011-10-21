@@ -54,6 +54,7 @@ class fpPaymentPayPalContext extends fpPaymentMethodContext
       $values['item_number_' . $i] = $val->getObjectId();
       $values['item_name_' . $i] = $val->getName();
       $values['quantity_' . $i] = $val->getQuantity();
+      $values['shipping_' . $i] = $val->getShipping();
       if ($tax = $val->getTax()) {
         $taxes += $tax;
       }
@@ -85,6 +86,10 @@ class fpPaymentPayPalContext extends fpPaymentMethodContext
     $order->save();
   }  
   
+  /**
+   * (non-PHPdoc)
+   * @see fpPaymentMethodContext::renderSuccessPage()
+   */
   public function renderSuccessPage(sfAction &$action, sfRequest $request) {
     if ($this->getIpn()->getErrors()) {
       $action->redirect('@fpPaymentPayPalPlugin_error');
