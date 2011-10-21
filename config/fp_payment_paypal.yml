@@ -1,10 +1,8 @@
 all:
-  page_info:
-    module: fpPaymentPayPal
-    action: index
-  page_error:
-    module: fpPaymentPayPal
-    action: error
+  page_info_module: fpPaymentPayPal
+  page_info_action: index
+  page_error_module: fpPaymentPayPal
+  page_error_action: error
   form_url: 'www.paypal.com'
   form_url_path: '/cgi-bin/webscr?'
   form_fields:

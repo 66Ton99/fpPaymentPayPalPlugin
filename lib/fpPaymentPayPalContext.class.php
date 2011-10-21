@@ -85,6 +85,15 @@ class fpPaymentPayPalContext extends fpPaymentMethodContext
     $order->save();
   }  
   
+  public function renderSuccessPage(sfAction &$action, sfRequest $request) {
+    if ($this->getIpn()->getErrors()) {
+      $action->redirect('@fpPaymentPayPalPlugin_error');
+    } else {
+      $action->redirect($this->getContext()->getPayPal()->getIpn()->getUrl());
+    }
+    return sfView::NONE;
+  }
+  
 	/**
    * (non-PHPdoc)
    * @see fpPaymentMethodContext::renderErrorPage()

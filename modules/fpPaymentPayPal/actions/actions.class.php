@@ -63,16 +63,13 @@ class fpPaymentPayPalActions extends sfActions
     
     $payPal->getLoger()->addArray($params, 'Callback');
     $id = (int)$request->getParameter('invoice');
-    $order = fpPaymentOrderTable::getInstance()->findOneByIdAndStatus($id, fpPaymentOrderStatusEnum::NEWONE);
+    $order = fpPaymentOrderTable::getInstance()->findOneByIdAndStatus($id, fpPaymentOrderStatusEnum::IN_PROCESS);
     
     if (empty($order)) {
       $payPal->getLoger()->add('FAIL', 'CALLBACK');
       die('FAIL');
     }
-    
     $order->setType(fpPaymentPaypal::NAME);
-    $order->setStatus(fpPaymentOrderStatusEnum::IN_PROCESS);
-    $order->save();
     
     unset(
       $params['module'],
@@ -109,7 +106,6 @@ class fpPaymentPayPalActions extends sfActions
    */
   public function executeError(sfWebRequest $request)
   {
-    var_dump(fpPaymentOrder::getStatusEnums());
     fpPaymentContext::getInstance()->getPayPal()->getLoger()->addArray($request->getParameterHolder()->getAll(), 'Error');
   }
   
