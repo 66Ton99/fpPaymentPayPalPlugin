@@ -60,7 +60,7 @@ class fpPaymentPayPalContext extends fpPaymentMethodContext
       $i++;
     }
     if (!empty($taxes)) {
-      $values['tax_cart'] = $taxes;
+      $values['tax_cart'] = round($taxes, 2);
     }
     $values['currency_code'] = $context->getOrderModel()->getCurrency();
   }
