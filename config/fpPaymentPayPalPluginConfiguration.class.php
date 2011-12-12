@@ -34,12 +34,9 @@ class fpPaymentPayPalPluginConfiguration extends sfPluginConfiguration
   {
     //$context = $event->getSubject();
     $configFiles = $this->configuration->getConfigPaths('config/fp_payment_paypal.yml');
-    $config = sfDefineEnvironmentConfigHandler::getConfiguration($configFiles);
-    
-    foreach ($config as $name => $value) {
-      sfConfig::set("fp_payment_paypal_{$name}", $value);  
-    }
-
+    $functionsClassName = sfConfig::get('functions_class_name');
+    $functionsClassName::addConfigsToSystem("fp_payment_paypal_{$name}",
+                                            sfDefineEnvironmentConfigHandler::getConfiguration($configFiles));
     fpPaymentContext::getInstance()->addPaymentMethod(array(fpPaymentPayPalContext::NAME => fpPaymentPayPalContext::NAME));
     
   }

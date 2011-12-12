@@ -3,28 +3,29 @@ all:
   page_info_action: index
   page_error_module: fpPaymentPayPal
   page_error_action: error
-#  ipn:
-#    express:
-  form_url: 'www.paypal.com'
-  form_url_path: '/cgi-bin/webscr?'
-  form_fields:
-    #product info:
-    amount_1: 0
-    item_name_1: ''
-    quantity_1: 0
-  form_hidden_fields:
-    _info: Array
-    cmd: _cart
-    upload: 1
-    shipping: 0.00
-    cancel_return: '@fpPaymentPayPalPlugin_cancelled' 
-    notify_url: '@fpPaymentPayPalPlugin_callback'
-    return: '@fpPaymentPayPalPlugin_success'
-#    page_style: 'Primary'
-    #other:
-    currency_code: ''
-#    custom: ''
-    invoice: 0
-    #required:
-    business: ''
+  ipn_default: express
+  ipns:
+    express:
+      url: 'www.paypal.com'
+      url_path: '/cgi-bin/webscr?'
+      form_fields:
+        #product info:
+        amount_1: 0
+        item_name_1: ''
+        quantity_1: 0
+      form_hidden_fields:
+        _info: Array
+        cmd: _cart
+        upload: 1
+        shipping: 0.00
+        cancel_return: '@fpPaymentPayPalPlugin_cancelled' 
+        notify_url: '@fpPaymentPayPalPlugin_callback'
+        return: '@fpPaymentPayPalPlugin_success'
+    #    page_style: 'Primary'
+        #other:
+        currency_code: ''
+    #    custom: ''
+        invoice: 0
+        #required:
+        business: ''
       

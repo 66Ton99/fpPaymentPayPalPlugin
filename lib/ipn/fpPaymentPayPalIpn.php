@@ -25,9 +25,9 @@ class fpPaymentPayPalIpn extends fpPaymentDecoratorBase
    * 
    * @param fpPaymentProtocolBase $object
    */
-  function __construct()
+  function __construct(fpPaymentIpnBase $ipn)
   {
-    $this->object = new fpPaymentPayPalIpnExpress();
+    $this->object = $ipn;
   }
   
   /**
