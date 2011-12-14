@@ -12,16 +12,6 @@ class fpPaymentPayPalContext extends fpPaymentMethodContext
   
   const NAME = 'PayPal';
   
-	/**
-   * Constructor
-   *
-   * @return void
-   */
-  public function __construct()
-  {
-    parent::__construct();
-  }
-  
   /**
    * (non-PHPdoc)
    * @see fpPaymentMethodContext::renderInfoPage()
@@ -40,7 +30,7 @@ class fpPaymentPayPalContext extends fpPaymentMethodContext
     if ($this->getIpn()->getErrors()) {
       $action->redirect('@fpPaymentPayPalPlugin_error');
     } else {
-      $action->redirect($this->getContext()->getPayPal()->getIpn()->getUrl());
+      $action->redirect($this->getContext()->getPayPal()->getIpn()->getRedirectUrl());
     }
     return sfView::NONE;
   }

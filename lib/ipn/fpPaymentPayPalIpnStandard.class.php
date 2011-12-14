@@ -4,12 +4,14 @@
  * Class that works with PayPal Instant fpPayment Notification. It takes what was
  * sent from PayPal and sends an indentical response back to PayPal, then waits
  * for verification from PayPal
+ * 
+ * NOTE it is wrong one don't use it!!!
  *
  * @package    fpPayment
  * @subpackage PayPal
  * @author		 Ton Sharp <Forma-PRO@66ton99.org.ua>
  */
-class fpPaymentPayPalIpnExpress extends fpPaymentIpnBase
+class fpPaymentPayPalIpnStandard extends fpPaymentPayPalIpnBase
 {
 
   protected $curl;
@@ -17,16 +19,16 @@ class fpPaymentPayPalIpnExpress extends fpPaymentIpnBase
   protected $options = array(
     'url' => 'www.paypal.com',
     'url_path' => '/cgi-bin/webscr?',
-    'formFields' => array(
+    'form_fields' => array(
       'amount_1' => 0,
       'item_name_1' => '',
       'quantity_1' => 0,
     ),
-    'formHiddenFields' => array(
+    'form_hidden_fields' => array(
       '_info' => 'Array',
       'cmd' => '_cart',
-      'upload' => '1',
-      'shipping' => '0.00',
+      'upload' => 1,
+      'shipping' => 0.00,
       'cancel_return' => '@fpPaymentPayPalPlugin_cancelled',
       'notify_url' => '@fpPaymentPayPalPlugin_callback',
       'return' => '@fpPaymentPayPalPlugin_success',
@@ -51,26 +53,23 @@ class fpPaymentPayPalIpnExpress extends fpPaymentIpnBase
    *
    * @return void
    */
-  public function __construct($options)
+  public function __construct($options = array())
   {
-    $this->options;
-    sfContext::getInstance()->getConfiguration()->loadHelpers(array('Url'));
-    $this->url = 'https://' . sfConfig::get('fp_payment_paypal_form_url', 'www.paypal.com') . 
-                    sfConfig::get('fp_payment_paypal_form_url_path', '/cgi-bin/webscr');
-    $data = sfConfig::get('fp_payment_paypal_form_fields', $this->formFields);
-    $data = array_merge($data, sfConfig::get('fp_payment_paypal_form_hidden_fields', $this->formHiddenFields));
-    foreach ($this->getUrlKeys() as $key) {
-      $data[$key] = urlencode(url_for($data[$key], true));
-    }
+    $configOptions = sfConfig::get('fp_payment_paypal_ipn', array('standard' => $this->options));
     
-    fpPaymentContext::getInstance()
+    $configOptions = $configOptions['standard'];
+    $this->options = array_merge($configOptions, $options);
+    $this->url = 'https://' . $this->options['url'] . $this->options['url_path'];
+    
+    $data = array_merge($this->options['form_fields'], $this->options['form_hidden_fields']);
+    
+    parent::setData($this->convertRoutesToUrls($data));
+    $this->getContext()
       ->getDispatcher()
         ->connect('fp_payment_order.after_create', array($this, 'addOrderToValues'));
-    fpPaymentContext::getInstance()
+    $this->getContext()
       ->getDispatcher()
         ->connect('fp_payment.on_process', array($this, 'addItemsToValues'));
-    
-    parent::setData($data);
   }
   
   /**
@@ -116,22 +115,10 @@ class fpPaymentPayPalIpnExpress extends fpPaymentIpnBase
     foreach ($this->getUrlKeys() as $key) {
       $this->data[$key] = $this->data[$key] . urlencode('?orderId=' . $orderId);
     }
-    $this->url .= $this->curl->prepareRequest($this->data);
-    fpPaymentContext::getInstance()
-      ->getPayPal()
-      ->getLoger()
-      ->addArray($this->data, 'Send data to ' . $this->url);
+    $this->redirectUrl =  $this->url . $this->curl->prepareRequest($this->data);
+    $this->getLoger()
+      ->addArray($this->data, 'Send data to ' . $this->redirectUrl);
     return $this;
-  }
-  
-  /**
-   * Get url
-   *
-   * @return string
-   */
-  public function getUrl()
-  {
-    return $this->url;
   }
   
   /**
@@ -150,15 +137,11 @@ class fpPaymentPayPalIpnExpress extends fpPaymentIpnBase
     } else {
       $data = array_merge(array('cmd' => '_notify-validate'), $data);
     }
-    fpPaymentContext::getInstance()
-      ->getPayPal()
-      ->getLoger()
+    $this->getLoger()
       ->addArray($data, 'Send notify data to ' . $this->getUrl() . $this->curl->prepareRequest($this->getData()));
 
     $this->response = $this->curl->sendPostRequest($data);
-    fpPaymentContext::getInstance()
-      ->getPayPal()
-      ->getLoger()
+    $this->getLoger()
       ->add($this->response, 'Get notify data');
     return $this;
   }
@@ -210,8 +193,25 @@ class fpPaymentPayPalIpnExpress extends fpPaymentIpnBase
     $values = $event['values'];
     $values['invoice'] = $order->getId();
     $values['payer_id'] = $context->getCustomer()->getId();
-    $order->setType(static::NAME);
+    $order->setType(fpPaymentPayPalContext::NAME);
     $order->setStatus(fpPaymentOrderStatusEnum::IN_PROCESS);
     $order->save();
   }
+  
+  /**
+   * (non-PHPdoc)
+   * @see fpPaymentPayPalIpnBase::processCallbackData()
+   */
+  public function processCallbackData($data)
+  {
+    $data['receiver_email'] = $this->options['form_hidden_fields']['business'];
+    return $data;
+  }
+  
+  /**
+   * Do nothing
+   * 
+   * @see fpPaymentPayPalIpnBase::getToken()
+   */
+  public function getToken() {}
 }

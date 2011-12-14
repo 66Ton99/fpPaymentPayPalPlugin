@@ -19,7 +19,7 @@ abstract class PluginfpPaymentPaypal extends BasefpPaymentPaypal
    * 
    * return void
    */
-  public function setResponse($data)
+  public function setCallback($data)
   {
     $responseString = '';
     $responseArray = array();
@@ -38,6 +38,6 @@ abstract class PluginfpPaymentPaypal extends BasefpPaymentPaypal
         }
       }
     }
-    parent::_set('response', $responseString);
+    parent::_set('callback', $responseString);
   }
 }

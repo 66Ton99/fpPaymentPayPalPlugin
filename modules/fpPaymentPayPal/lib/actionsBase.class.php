@@ -73,27 +73,25 @@ class fpPaymentPayPalActionsBase extends sfActions
     
     unset(
       $params['module'],
-      $params['action']
+      $params['action'],
+      $params['orderId']
     );
     
     $paypalModel = new fpPaymentPaypal();
     $paypalModel->setOrderId($order->getId());
-    $paypalModel->setResponse($params);
+    $paypalModel->setCallback($params);
     $paypalModel->save();
     
-    $paypalFormHiddenFields = sfConfig::get('fp_payment_paypal_form_hidden_fields', array('business' => ''));
-    $params['receiver_email'] = $paypalFormHiddenFields['business'];
-    
-    $paypalIpn = $payPal->getIpn();
-    $paypalIpn->setData($params);
+    $paypalIpn = $payPal->getIpn();    
+    $paypalIpn->setData($paypalIpn->processCallbackData($params));
     $paypalIpn->processNotifyValidate();
-    if ($paypalIpn->isVerified()) {
-      $order->setStatus(fpPaymentOrderStatusEnum::SUCCESS);
-      $order->save();
-    } else {
-      $order->setStatus(fpPaymentOrderStatusEnum::FAIL);
-      $order->save();
-    }
+    
+    $order->setStatus($paypalIpn->isVerified()?fpPaymentOrderStatusEnum::SUCCESS:fpPaymentOrderStatusEnum::FAIL);
+    $order->save();
+    
+    $paypalModel->setResponse($paypalIpn->getResponse());
+    $paypalModel->save();
+    
     die('OK');
   }
   

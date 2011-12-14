@@ -49,8 +49,10 @@ fpPaymentPaypal:
     test_ipn:               varchar(255)
     transaction_subject:    varchar(255)
     payment_gross:          varchar(255)
+    callback:
+      type:                 clob
     response:
-      type:                 string
+      type:                 clob
   relations:
     fpPaymentOrder:
       local:    order_id
