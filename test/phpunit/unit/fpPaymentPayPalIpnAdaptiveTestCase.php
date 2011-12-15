@@ -37,7 +37,6 @@ class fpPaymentPayPalIpnAdaptiveTestCase extends sfBasePhpunitTestCase
     
     $obj = new fpPaymentPayPalIpnAdaptive($this->options);
     $this->assertEquals($obj->getData(), array(
-//        'actionType' => 'PAY',
         'errorUrl' => 'http://./symfony/symfony/fpPaymentPayPal/error',
         'returnUrl' => 'http://payment.tonpc.forma-dev.com/success',
         'cancelUrl' => 'http://payment.tonpc.forma-dev.com/cancelled',
@@ -46,7 +45,7 @@ class fpPaymentPayPalIpnAdaptiveTestCase extends sfBasePhpunitTestCase
         'currencyCode' => 'USD',
         'actionType' => 'PAY',
         'receiverList.receiver(0).email' => 'leftco_1317812970_biz@66ton99.org.ua',
-        'receiverList.receiver(0).amount' => '100'
+        'receiverList.receiver(0).amount' => '100',
       ));
   }
   
@@ -55,11 +54,14 @@ class fpPaymentPayPalIpnAdaptiveTestCase extends sfBasePhpunitTestCase
    */
   public function getToken()
   {
-    $stub = $this->getMock('fpPaymentPayPalIpnAdaptive', array('getLoger'), array($this->options));
+    $stub = $this->getMock('fpPaymentPayPalIpnAdaptive', array('getLoger', 'getOrderId'), array($this->options));
 
     $stub->expects($this->any())
          ->method('getLoger')
          ->will($this->returnValue(new fpPaymentTestNullObject()));
+    $stub->expects($this->any())
+         ->method('getOrderId')
+         ->will($this->returnValue(time()));
     if (false == $stub->getToken()) {
       $this->fail(print_r($stub->getResponse(), true));
     }

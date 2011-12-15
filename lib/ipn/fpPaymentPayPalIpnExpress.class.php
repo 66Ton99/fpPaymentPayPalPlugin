@@ -92,7 +92,7 @@ class fpPaymentPayPalIpnExpress extends fpPaymentPayPalIpnBase
   public function process()
   {
     if ($token = $this->getToken()) {
-      $this->redirectUrl = 'https://' . $this->options['checkout_url'] . $this->options['checkout_url'] . urlencode($token);
+      $this->redirectUrl = 'https://' . $this->options['checkout_url'] . $this->options['checkout_url_path'] . urlencode($token);
       $this->getLoger()
         ->add('Redirecting to ' . $this->getRedirectUrl());
     } else {
@@ -169,7 +169,7 @@ class fpPaymentPayPalIpnExpress extends fpPaymentPayPalIpnBase
     $values['currency_code'] = $context->getOrderModel()->getCurrency();
   }
   
-  /**addOrderToValues
+  /**
    * Event handler. Add order to values
    *
    * @param sfEvent $event - Keys: values, context
@@ -191,12 +191,12 @@ class fpPaymentPayPalIpnExpress extends fpPaymentPayPalIpnBase
   
   /**
    * (non-PHPdoc)
-   * @see fpPaymentPayPalIpnBase::processCallbackData()
+   * @todo implement
+   * @see fpPaymentPayPalIpnBase::processCallback()
    */
-  public function processCallbackData($data)
+  public function processCallback($data)
   {
-//    $data['receiver_email'] = $this->options['form_hidden_fields']['business'];
-    return $data;
+    return false;
   }
   
   /**

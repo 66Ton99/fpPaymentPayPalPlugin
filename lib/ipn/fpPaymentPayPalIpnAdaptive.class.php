@@ -14,7 +14,7 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
   
   protected $options = array(
     'url' => 'svcs.paypal.com',
-    'url_path' => '/AdaptivePayments/',
+    'url_path' => '/AdaptivePayments/Pay',
     'checkout_url' => 'www.paypal.com',
     'checkout_url_path' => '/webscr?cmd=_ap-payment&paykey=',
     'headers' => array(
@@ -34,9 +34,11 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
       'ipnNotificationUrl' => '@fpPaymentPayPalPlugin_callback',
       'requestEnvelope.errorLanguage' => 'en_US',
       'currencyCode' => 'USD',
-      'actionType' => '',
+//      'feesPayer' => '', // SENDER, PRIMARYRECEIVER, EACHRECEIVER, SECONDARYONLY
+      'actionType' => 'PAY',
       'receiverList.receiver(0).email' => '',
-      'receiverList.receiver(0).amount' => ''
+      'receiverList.receiver(0).amount' => '',
+//      'receiverList.receiver(0).primary' => 'true', // true, false
     )
   );
 
@@ -51,12 +53,10 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
   public function __construct($options = array())
   {
     $configOptions = sfConfig::get('fp_payment_paypal_ipn', array('adaptive' => $this->options));
-    
     $configOptions = $configOptions['adaptive'];
     $functionsClassName = sfConfig::get('fp_payment_functions_class_name',  'fpPaymentFunctions');
-    $this->options = $functionsClassName::arrayMergeRecursive($configOptions, $options);
+    $this->options = $functionsClassName::arrayMergeRecursive($this->options, $configOptions, $options);
     $data = $this->options['fields'];
-    
     parent::setData($this->convertRoutesToUrls($data));
     $this->getContext()
       ->getDispatcher()
@@ -97,14 +97,12 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
   public function process()
   {
     if ($token = $this->getToken()) {
-      $this->redirectUrl = 'https://' . $this->options['checkout_url'] . $this->options['checkout_url'] . urlencode($token);
-      $this->getLoger()
-        ->add('Redirecting to ' . $this->getRedirectUrl());
+      $this->redirectUrl = 'https://' . $this->options['checkout_url'] . $this->options['checkout_url_path'] . urlencode($token);
     } else {
       $this->redirectUrl = $this->options['fields']['errorURL'];
-      $this->getLoger()
-        ->addArray($this->getResponse(), 'Erorr', 'Process');
     }
+    $this->getLoger()
+        ->add('Redirecting to ' . $this->getRedirectUrl());
     return $this;
   }
   
@@ -114,7 +112,7 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
    */
   public function getUrl()
   {
-    return 'https://' . $this->options['url'] . $this->options['url_path'] . '/' . $this->options['protocol'];
+    return 'https://' . $this->options['url'] . $this->options['url_path'];
   }
   
   /**
@@ -154,24 +152,9 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
     /* @var $context fpPaymentContext */
     $context = $event['context'];
     $values = $event['values'];
-    $i = 1;
-    $taxes = 0.0;
-    /* @var $val fpPaymentOrderItem */
-    foreach ($context->getOrderModel()->getFpPaymentOrderItem() as $val) {
-      $values['amount_' . $i] = $val->getPrice();
-      $values['item_number_' . $i] = $val->getObjectId();
-      $values['item_name_' . $i] = $val->getName();
-      $values['quantity_' . $i] = $val->getQuantity();
-      $values['shipping_' . $i] = $val->getShipping();
-      if ($tax = $val->getTax()) {
-        $taxes += $tax;
-      }
-      $i++;
-    }
-    if (!empty($taxes)) {
-      $values['tax_cart'] = round($taxes, 2);
-    }
-    $values['currency_code'] = $context->getOrderModel()->getCurrency();
+    $values['receiverList.receiver(0).amount'] = $context->getOrderModel()->getSum();
+    $values['currencyCode'] = $context->getOrderModel()->getCurrency();
+    $values['customerId'] = $context->getOrderModel()->getCustomerId();
   }
   
   /**
@@ -187,8 +170,7 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
     $context = $event['context'];
     $order = $context->getOrderModel();
     $values = $event['values'];
-    $values['invoice'] = $order->getId();
-    $values['payer_id'] = $context->getCustomer()->getId();
+    $values['invoiceId'] = $order->getId();
     $order->setType(fpPaymentPayPalContext::NAME);
     $order->setStatus(fpPaymentOrderStatusEnum::IN_PROCESS);
     $order->save();
@@ -196,11 +178,12 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
   
   /**
    * (non-PHPdoc)
-   * @see fpPaymentPayPalIpnBase::processCallbackData()
+   * @todo finish
+   * @see fpPaymentPayPalIpnBase::processCallback()
    */
-  public function processCallbackData($data)
+  public function processCallback($data)
   {
-//    $data['receiver_email'] = $this->options['form_hidden_fields']['business'];
+    // TODO Implement
     return $data;
   }
   
@@ -214,12 +197,16 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
     $connection = $this->getConnection($this->getUrl());
     $data = $this->getData();
     foreach ($this->getUrlKeys() as $key) {
-      $data[$key] = $data[$key] . urlencode('?orderId=' . $orderId);
+      $data[$key] = $data[$key] . '?orderId=' . $this->getOrderId();
     }
     $this->getLoger()
       ->addArray($data, 'Get token by ' . $this->getUrl());
-    $connection->setHeader($this->options['headers']);
+    $headers = $this->options['headers'];
+    $headers['X-PAYPAL-DEVICE-IPADDRESS'] = $_SERVER['REMOTE_ADDR'];
+    $connection->setHeader($headers);
     $this->response = $this->getProtocol()->toArray($connection->sendPostRequest($this->getProtocol()->fromArray($data)));
+    $this->getLoger()
+      ->addArray($this->response, 'Get token response');
     if ('SUCCESS' == strtoupper($this->response['responseEnvelope_ack'])) {
       return empty($this->response['payKey'])?false:$this->response['payKey'];
     }

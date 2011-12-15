@@ -19,7 +19,7 @@ abstract class fpPaymentPayPalIpnBase extends fpPaymentIpnBase
    *
    * @return array
    */
-  abstract public function processCallbackData($data);
+  abstract public function processCallback($data);
   
   /**
    * Retrun redirect url to PayPal

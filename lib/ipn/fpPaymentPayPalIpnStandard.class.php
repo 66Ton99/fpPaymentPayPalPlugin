@@ -200,12 +200,44 @@ class fpPaymentPayPalIpnStandard extends fpPaymentPayPalIpnBase
   
   /**
    * (non-PHPdoc)
-   * @see fpPaymentPayPalIpnBase::processCallbackData()
+   * @see fpPaymentPayPalIpnBase::processCallback()
    */
-  public function processCallbackData($data)
+  public function processCallback($data)
   {
+    if (empty($data['id'])) return false;
+    $id = (int)$data['id'];
+    $order = fpPaymentOrderTable::getInstance()->findOneByIdAndStatus($id, fpPaymentOrderStatusEnum::IN_PROCESS);
+    
+    if (empty($order)) {
+      $this->getLoger()->add("FAIL order with id: '{$id}' don't found", 'CALLBACK');
+      return false;
+    }
+    if (fpPaymentPaypal::NAME != $order->getType()) {
+      $this->getLoger()->add('FRAUD', 'CALLBACK');
+      return false;
+    }
+    
+    unset(
+      $data['module'],
+      $data['action'],
+      $data['orderId']
+    );
     $data['receiver_email'] = $this->options['form_hidden_fields']['business'];
-    return $data;
+    
+    $paypalModel = new fpPaymentPaypal();
+    $paypalModel->setOrderId($order->getId());
+    $paypalModel->setCallback($data);
+    $paypalModel->save();
+    
+    $this->setData($data);
+    $this->processNotifyValidate();
+    
+    $order->setStatus($this->isVerified()?fpPaymentOrderStatusEnum::SUCCESS:fpPaymentOrderStatusEnum::FAIL);
+    $order->save();
+    
+    $paypalModel->setResponse($this->getResponse());
+    $paypalModel->save();
+    return true;
   }
   
   /**

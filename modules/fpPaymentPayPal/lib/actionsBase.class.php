@@ -58,41 +58,14 @@ class fpPaymentPayPalActionsBase extends sfActions
    */
   public function executeCallback(sfWebRequest $request)
   {
-    $payPal = fpPaymentContext::getInstance()->getPayPal();
     $params = $request->getParameterHolder()->getAll();
-    
+    $payPal = fpPaymentContext::getInstance()->getPayPal();
     $payPal->getLoger()->addArray($params, 'Callback');
-    $id = (int)$request->getParameter('invoice');
-    $order = fpPaymentOrderTable::getInstance()->findOneByIdAndStatus($id, fpPaymentOrderStatusEnum::IN_PROCESS);
-    
-    if (empty($order)) {
-      $payPal->getLoger()->add('FAIL', 'CALLBACK');
-      die('FAIL');
+    if ($payPal->getIpn()->processCallback($params)) {
+      $this->renderText('OK');
     }
-    $order->setType(fpPaymentPaypal::NAME);
-    
-    unset(
-      $params['module'],
-      $params['action'],
-      $params['orderId']
-    );
-    
-    $paypalModel = new fpPaymentPaypal();
-    $paypalModel->setOrderId($order->getId());
-    $paypalModel->setCallback($params);
-    $paypalModel->save();
-    
-    $paypalIpn = $payPal->getIpn();    
-    $paypalIpn->setData($paypalIpn->processCallbackData($params));
-    $paypalIpn->processNotifyValidate();
-    
-    $order->setStatus($paypalIpn->isVerified()?fpPaymentOrderStatusEnum::SUCCESS:fpPaymentOrderStatusEnum::FAIL);
-    $order->save();
-    
-    $paypalModel->setResponse($paypalIpn->getResponse());
-    $paypalModel->save();
-    
-    die('OK');
+    $this->renderText('FAIL');
+    return sfView::NONE;
   }
   
   /**
