@@ -99,7 +99,7 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
     if ($token = $this->getToken()) {
       $this->redirectUrl = 'https://' . $this->options['checkout_url'] . $this->options['checkout_url_path'] . urlencode($token);
     } else {
-      $this->redirectUrl = $this->options['fields']['errorURL'];
+      $this->redirectUrl = $this->options['fields']['errorUrl'];
     }
     $this->getLoger()
         ->add('Redirecting to ' . $this->getRedirectUrl());
