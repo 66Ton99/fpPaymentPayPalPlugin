@@ -204,8 +204,8 @@ class fpPaymentPayPalIpnStandard extends fpPaymentPayPalIpnBase
    */
   public function processCallback($data)
   {
-    if (empty($data['id'])) return false;
-    $id = (int)$data['id'];
+    if (empty($data['orderId'])) return false;
+    $id = (int)$data['orderId'];
     $order = fpPaymentOrderTable::getInstance()->findOneByIdAndStatus($id, fpPaymentOrderStatusEnum::IN_PROCESS);
     
     if (empty($order)) {
@@ -222,7 +222,7 @@ class fpPaymentPayPalIpnStandard extends fpPaymentPayPalIpnBase
       $data['action'],
       $data['orderId']
     );
-    $data['receiver_email'] = $this->options['form_hidden_fields']['business'];
+//     $data['receiver_email'] = $this->options['form_hidden_fields']['business'];
     
     $paypalModel = new fpPaymentPaypal();
     $paypalModel->setOrderId($order->getId());
@@ -232,8 +232,8 @@ class fpPaymentPayPalIpnStandard extends fpPaymentPayPalIpnBase
     $this->setData($data);
     $this->processNotifyValidate();
     
-    $order->setStatus($this->isVerified()?fpPaymentOrderStatusEnum::SUCCESS:fpPaymentOrderStatusEnum::FAIL);
-    $order->save();
+//     $order->setStatus($this->isVerified()?fpPaymentOrderStatusEnum::SUCCESS:fpPaymentOrderStatusEnum::FAIL);
+//     $order->save();
     
     $paypalModel->setResponse($this->getResponse());
     $paypalModel->save();
