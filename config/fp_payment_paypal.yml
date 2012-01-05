@@ -4,6 +4,8 @@ all:
   page_error_module: fpPaymentPayPal
   page_error_action: error
   ipn_default: adaptive
+  ipn_url: 'www.paypal.com'
+  ipn_url_path: '/cgi-bin/webscr?'
   ipn:
     standard: # DONE but did it wrong
       url: 'www.paypal.com'

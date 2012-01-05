@@ -14,7 +14,7 @@
 class fpPaymentPayPalIpnStandard extends fpPaymentPayPalIpnBase
 {
 
-  protected $curl;
+  protected $connection;
   
   protected $options = array(
     'url' => 'www.paypal.com',
@@ -83,16 +83,6 @@ class fpPaymentPayPalIpnStandard extends fpPaymentPayPalIpnBase
   }
 
   /**
-   * returns true if paypal says the order is good, false if not
-   *
-   * @return bool
-   */
-  public function isVerified()
-  {
-    return (0 == strcmp('VERIFIED', $this->response));
-  }
-
-  /**
    * returns the paypal payment status
    * 
    * @TODO complet
@@ -110,39 +100,14 @@ class fpPaymentPayPalIpnStandard extends fpPaymentPayPalIpnBase
    */
   public function process()
   {
-    $this->curl = new fpPaymentConnection($this->url);
+    $connection = new fpPaymentConnection($this->url);
     $orderId = fpPaymentContext::getInstance()->getOrderModel()->getId();
     foreach ($this->getUrlKeys() as $key) {
       $this->data[$key] = $this->data[$key] . urlencode('?orderId=' . $orderId);
     }
-    $this->redirectUrl =  $this->url . $this->curl->prepareRequest($this->data);
+    $this->redirectUrl =  $this->url . $this->getProtocol()->fromArray($this->data);
     $this->getLoger()
       ->addArray($this->data, 'Send data to ' . $this->redirectUrl);
-    return $this;
-  }
-  
-  /**
-   * Checks come data
-   *
-   * @param array $params
-   *
-   * @return fpPaymentPaypalIpn
-   */
-  public function processNotifyValidate()
-  {
-    $this->curl = new fpPaymentConnection($this->getUrl());
-    $data = $this->getData();
-    if (!empty($data['cmd'])) {
-      $data['cmd'] = '_notify-validate';
-    } else {
-      $data = array_merge(array('cmd' => '_notify-validate'), $data);
-    }
-    $this->getLoger()
-      ->addArray($data, 'Send notify data to ' . $this->getUrl() . $this->curl->prepareRequest($this->getData()));
-
-    $this->response = $this->curl->sendPostRequest($data);
-    $this->getLoger()
-      ->add($this->response, 'Get notify data');
     return $this;
   }
   
@@ -197,53 +162,4 @@ class fpPaymentPayPalIpnStandard extends fpPaymentPayPalIpnBase
     $order->setStatus(fpPaymentOrderStatusEnum::IN_PROCESS);
     $order->save();
   }
-  
-  /**
-   * (non-PHPdoc)
-   * @see fpPaymentPayPalIpnBase::processCallback()
-   */
-  public function processCallback($data)
-  {
-    if (empty($data['orderId'])) return false;
-    $id = (int)$data['orderId'];
-    $order = fpPaymentOrderTable::getInstance()->findOneByIdAndStatus($id, fpPaymentOrderStatusEnum::IN_PROCESS);
-    
-    if (empty($order)) {
-      $this->getLoger()->add("FAIL order with id: '{$id}' don't found", 'CALLBACK');
-      return false;
-    }
-    if (fpPaymentPaypal::NAME != $order->getType()) {
-      $this->getLoger()->add('FRAUD', 'CALLBACK');
-      return false;
-    }
-    
-    unset(
-      $data['module'],
-      $data['action'],
-      $data['orderId']
-    );
-//     $data['receiver_email'] = $this->options['form_hidden_fields']['business'];
-    
-    $paypalModel = new fpPaymentPaypal();
-    $paypalModel->setOrderId($order->getId());
-    $paypalModel->setCallback($data);
-    $paypalModel->save();
-    
-    $this->setData($data);
-    $this->processNotifyValidate();
-    
-//     $order->setStatus($this->isVerified()?fpPaymentOrderStatusEnum::SUCCESS:fpPaymentOrderStatusEnum::FAIL);
-//     $order->save();
-    
-    $paypalModel->setResponse($this->getResponse());
-    $paypalModel->save();
-    return true;
-  }
-  
-  /**
-   * Do nothing
-   * 
-   * @see fpPaymentPayPalIpnBase::getToken()
-   */
-  public function getToken() {}
 }

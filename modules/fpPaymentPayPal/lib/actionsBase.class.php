@@ -58,10 +58,10 @@ class fpPaymentPayPalActionsBase extends sfActions
    */
   public function executeCallback(sfWebRequest $request)
   {
-    $params = $request->getParameterHolder()->getAll();
+    $data = file_get_contents("php://input") . '&orderId=' . $request->getParameter('orderId');
     $payPal = fpPaymentContext::getInstance()->getPayPal();
-    $payPal->getLoger()->addArray($params, 'Callback');
-    if ($payPal->getIpn()->processCallback($params)) {
+    $payPal->getLoger()->add($data, 'Callback DATA');
+    if ($payPal->getIpn()->processCallback($data)) {
       $this->renderText('OK');
     }
     $this->renderText('FAIL');

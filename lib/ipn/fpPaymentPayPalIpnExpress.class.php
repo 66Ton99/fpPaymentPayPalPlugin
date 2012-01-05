@@ -60,18 +60,6 @@ class fpPaymentPayPalIpnExpress extends fpPaymentPayPalIpnBase
       ->getDispatcher()
         ->connect('fp_payment.on_process', array($this, 'addItemsToValues'));
   }
-  
-  
-
-  /**
-   * returns true if paypal says the order is good, false if not
-   *
-   * @return bool
-   */
-  public function isVerified()
-  {
-    return (0 == strcmp('VERIFIED', $this->response));
-  }
 
   /**
    * returns the paypal payment status
@@ -121,7 +109,7 @@ class fpPaymentPayPalIpnExpress extends fpPaymentPayPalIpnBase
    */
   public function processNotifyValidate()
   {
-    $this->getConnection($this->getUrl());
+    $connection = $this->getConnection($this->getUrl());
     $data = $this->getData();
     if (!empty($data['cmd'])) {
       $data['cmd'] = '_notify-validate';
@@ -129,9 +117,9 @@ class fpPaymentPayPalIpnExpress extends fpPaymentPayPalIpnBase
       $data = array_merge(array('cmd' => '_notify-validate'), $data);
     }
     $this->getLoger()
-      ->addArray($data, 'Send notify data to ' . $this->getUrl() . $this->curl->prepareRequest($this->getData()));
+      ->addArray($data, 'Send notify data to ' . $this->getUrl() . $this->getProtocol()->fromArray($this->getData()));
 
-    $this->response = $this->curl->sendPostRequest($data);
+    $this->response = $connection->sendPostRequest($data);
     $this->getLoger()
       ->add($this->response, 'Get notify data');
     return $this;
@@ -191,16 +179,6 @@ class fpPaymentPayPalIpnExpress extends fpPaymentPayPalIpnBase
   
   /**
    * (non-PHPdoc)
-   * @todo implement
-   * @see fpPaymentPayPalIpnBase::processCallback()
-   */
-  public function processCallback($data)
-  {
-    return false;
-  }
-  
-  /**
-   * (non-PHPdoc)
    * @see fpPaymentPayPalIpnBase::getToken()
    */
   public function getToken()
@@ -213,6 +191,8 @@ class fpPaymentPayPalIpnExpress extends fpPaymentPayPalIpnBase
     $this->getLoger()
       ->addArray($data, 'Get token by ' . $this->getUrl());
     $this->response = $this->getProtocol()->toArray($connection->sendPostRequest($this->getProtocol()->fromArray($data)));
+    $this->getLoger()
+      ->addArray($this->response, 'Get token result');
     if ('SUCCESS' == strtoupper(substr($this->response['ACK'], 0, 7))) {
       return empty($this->response['TOKEN'])?false:$this->response['TOKEN'];
     }

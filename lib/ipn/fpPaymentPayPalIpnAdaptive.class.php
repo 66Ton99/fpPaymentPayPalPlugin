@@ -66,18 +66,6 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
         ->connect('fp_payment.on_process', array($this, 'addItemsToValues'));
   }
   
-  
-
-  /**
-   * returns true if paypal says the order is good, false if not
-   *
-   * @return bool
-   */
-  public function isVerified()
-  {
-    return (0 == strcmp('VERIFIED', $this->response));
-  }
-
   /**
    * returns the paypal payment status
    * 
@@ -113,31 +101,6 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
   public function getUrl()
   {
     return 'https://' . $this->options['url'] . $this->options['url_path'];
-  }
-  
-  /**
-   * Checks come data
-   *
-   * @param array $params
-   *
-   * @return fpPaymentPaypalIpn
-   */
-  public function processNotifyValidate()
-  {
-    $this->getConnection($this->getUrl());
-    $data = $this->getData();
-    if (!empty($data['cmd'])) {
-      $data['cmd'] = '_notify-validate';
-    } else {
-      $data = array_merge(array('cmd' => '_notify-validate'), $data);
-    }
-    $this->getLoger()
-      ->addArray($data, 'Send notify data to ' . $this->getUrl() . $this->curl->prepareRequest($this->getData()));
-
-    $this->response = $this->curl->sendPostRequest($data);
-    $this->getLoger()
-      ->add($this->response, 'Get notify data');
-    return $this;
   }
   
 	/**
@@ -176,17 +139,6 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
     $order->save();
   }
   
-  /**
-   * (non-PHPdoc)
-   * @todo finish
-   * @see fpPaymentPayPalIpnBase::processCallback()
-   */
-  public function processCallback($data)
-  {
-    // TODO Implement
-    return $data;
-  }
-  
 	/**
 	 * Get token
 	 *
@@ -207,7 +159,7 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
     $this->response = $this->getProtocol()->toArray($connection->sendPostRequest($this->getProtocol()->fromArray($data)));
     $this->getLoger()
       ->addArray($this->response, 'Get token response');
-    if ('SUCCESS' == strtoupper($this->response['responseEnvelope_ack'])) {
+    if ('SUCCESS' == strtoupper($this->response['responseEnvelope.ack'])) {
       return empty($this->response['payKey'])?false:$this->response['payKey'];
     }
     return false;
