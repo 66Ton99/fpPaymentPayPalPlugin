@@ -20,8 +20,9 @@ class fpPaymentPayPalIpnAdaptiveTestCase extends sfBasePhpunitTestCase
       'X-PAYPAL-DEVICE-IPADDRESS' => '82.117.234.33',
     ),
     'fields' => array(
-      'returnUrl' => 'http://payment.tonpc.forma-dev.com/success',
-      'cancelUrl' => 'http://payment.tonpc.forma-dev.com/cancelled',
+      'errorUrl' => 'http://example.com/error',
+      'returnUrl' => 'http://example.com/success',
+      'cancelUrl' => 'http://example.com/cancelled',
       'ipnNotificationUrl' => 'http://payment.tonpc.forma-dev.com/callback',
       'actionType' => 'PAY',
       'receiverList.receiver(0).email' => 'leftco_1317812970_biz@66ton99.org.ua',
@@ -34,12 +35,11 @@ class fpPaymentPayPalIpnAdaptiveTestCase extends sfBasePhpunitTestCase
    */
   public function construct_and_getData()
   {
-    
     $obj = new fpPaymentPayPalIpnAdaptive($this->options);
     $this->assertEquals($obj->getData(), array(
-        'errorUrl' => 'http://./symfony/symfony/fpPaymentPayPal/error',
-        'returnUrl' => 'http://payment.tonpc.forma-dev.com/success',
-        'cancelUrl' => 'http://payment.tonpc.forma-dev.com/cancelled',
+        'errorUrl' => 'http://example.com/error',
+        'returnUrl' => 'http://example.com/success',
+        'cancelUrl' => 'http://example.com/cancelled',
         'ipnNotificationUrl' => 'http://payment.tonpc.forma-dev.com/callback',
         'requestEnvelope.errorLanguage' => 'en_US',
         'currencyCode' => 'USD',
@@ -83,6 +83,13 @@ class fpPaymentPayPalIpnAdaptiveTestCase extends sfBasePhpunitTestCase
     $stub->expects($this->any())
          ->method('getOrderId')
          ->will($this->returnValue(1));
+    
+    $order = $this->getMock('fpPaymentOrder', array('getType', 'save'), array($this->options));
+    $order->expects($this->any())
+      ->method('getType')
+      ->will($this->returnValue(fpPaymentPaypal::NAME));
+    
+    fpPaymentContext::getInstance()->setOrderModel($order);
     $this->assertTrue($stub->processCallback($data));
     $this->assertTrue($stub->isVerified());
     

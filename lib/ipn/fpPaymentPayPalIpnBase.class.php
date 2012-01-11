@@ -24,6 +24,8 @@ abstract class fpPaymentPayPalIpnBase extends fpPaymentIpnBase
   
   /**
    * Get current orderid
+   * 
+   * @todo remove
    *
    * @return int
    */
@@ -44,7 +46,7 @@ abstract class fpPaymentPayPalIpnBase extends fpPaymentIpnBase
   /**
    * Process callback data
    *
-   * @param string paramsa
+   * @param string $data
    *
    * @return array
    */
@@ -52,12 +54,10 @@ abstract class fpPaymentPayPalIpnBase extends fpPaymentIpnBase
   {
     $params = $this->getProtocol()->toArray($data);
     $this->getLoger()->addArray($params, 'Callback PARAMS');
-    if (empty($params['orderId'])) return false;
-    $id = (int)$params['orderId'];
-    $order = fpPaymentOrderTable::getInstance()->findOneByIdAndStatus($id, fpPaymentOrderStatusEnum::IN_PROCESS);
-  
+    
+    $order = $this->getContext()->getOrderModel();
     if (empty($order)) {
-      $this->getLoger()->add("FAIL order with id: '{$id}' don't find", 'CALLBACK');
+      $this->getLoger()->add("FAIL order with don't find", 'CALLBACK');
       return false;
     }
     if (fpPaymentPaypal::NAME != $order->getType()) {
@@ -70,12 +70,7 @@ abstract class fpPaymentPayPalIpnBase extends fpPaymentIpnBase
       $params['action'],
       $params['orderId']
     );
-    //     $data['receiver_email'] = $this->options['form_hidden_fields']['business'];
-  
-    $paypalModel = new fpPaymentPaypal();
-    $paypalModel->setOrderId($order->getId());
-    $paypalModel->setCallback($params);
-    $paypalModel->save();
+    
   
     $this->setData($params);
     $this->processNotifyValidate();
@@ -83,8 +78,8 @@ abstract class fpPaymentPayPalIpnBase extends fpPaymentIpnBase
     $order->save();
     
   
-    $paypalModel->setResponse($this->getResponse());
-    $paypalModel->save();
+//     $paypalModel->setResponse($this->getResponse());
+//     $paypalModel->save();
     return true;
   }
   
@@ -99,14 +94,15 @@ abstract class fpPaymentPayPalIpnBase extends fpPaymentIpnBase
   {
     $url = 'https://' . sfConfig::get('fp_payment_paypal_ipn_url', 'www.paypal.com') .
       sfConfig::get('fp_payment_paypal_ipn_url_path', '/cgi-bin/webscr?');
-    $connectionn = new fpPaymentConnection($url);
     $data = $this->getData();
     if (!empty($data['cmd'])) {
       $data['cmd'] = '_notify-validate';
     } else {
       $data = array_merge(array('cmd' => '_notify-validate'), $data);
-    }    
-    $dataString = $this->getProtocol()->fromArray($data);
+    }
+    
+    $connectionn = new fpPaymentConnection($url);
+    $dataString = $this->getProtocol()->fromArray((array)$data);
     $this->getLoger()
       ->addArray($data, 'Send notify data to ' . $url . $dataString);
   
@@ -117,7 +113,7 @@ abstract class fpPaymentPayPalIpnBase extends fpPaymentIpnBase
   }
   
   /**
-   * returns true if paypal says the order is good, false if not
+   * Returns true if paypal says the order is good, false if not
    *
    * @return bool
    */
@@ -125,4 +121,21 @@ abstract class fpPaymentPayPalIpnBase extends fpPaymentIpnBase
   {
     return (0 == strcmp('VERIFIED', $this->response));
   }
+  
+  // TODO finish
+//   /**
+//    * Save log to DB
+//    *
+//    * @param array $data
+//    * @param int $orderId
+//    *
+//    * @return void
+//    */
+//   protected function saveDbLog($data, $orderId)
+//   {
+//     $paypalModel = new fpPaymentPaypal();
+//     $paypalModel->setOrderId($orderId);
+//     $paypalModel->setCallback($data);
+//     $paypalModel->save();
+//   }
 }

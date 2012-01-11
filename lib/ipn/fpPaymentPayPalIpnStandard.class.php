@@ -162,4 +162,14 @@ class fpPaymentPayPalIpnStandard extends fpPaymentPayPalIpnBase
     $order->setStatus(fpPaymentOrderStatusEnum::IN_PROCESS);
     $order->save();
   }
+  
+  /**
+   * (non-PHPdoc)
+   * @see fpPaymentPayPalIpnBase::processNotifyValidate()
+   */
+  public function processNotifyValidate()
+  {
+    $this->addData(array('receiver_email' => $this->options['form_hidden_fields']['business']));
+    return parent::processNotifyValidate();
+  }
 }

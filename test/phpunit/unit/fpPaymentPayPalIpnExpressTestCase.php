@@ -17,8 +17,10 @@ class fpPaymentPayPalIpnExpressTestCase extends sfBasePhpunitTestCase
       'USER' => 'leftco_1317812970_biz_api1.66ton99.org.ua',
       'PWD' => '1317813005',
       'SIGNATURE' => 'AFcWxV21C7fd0v3bYYYRCpSSRl31A.Nlbkq0n7eMOKw24aijdEK5mhPA',
+      'errorURL' => 'http://example.com/error',
       'returnURL' => 'http://example.com/success',
       'cancelURL' => 'http://example.com/cancelle',
+      'callback' => 'http://example.com/callback',
       'Amt' => '10',
       'paymentType' => 'Authorization', // or 'Sale' or 'Order'
     )
@@ -36,10 +38,10 @@ class fpPaymentPayPalIpnExpressTestCase extends sfBasePhpunitTestCase
         'USER' => 'leftco_1317812970_biz_api1.66ton99.org.ua',
         'PWD' => '1317813005',
         'SIGNATURE' => 'AFcWxV21C7fd0v3bYYYRCpSSRl31A.Nlbkq0n7eMOKw24aijdEK5mhPA',
-        'errorURL' => 'http://./symfony/symfony/fpPaymentPayPal/error',
+        'errorURL' => 'http://example.com/error',
         'returnURL' => 'http://example.com/success',
         'cancelURL' => 'http://example.com/cancelle',
-        'callback' => 'http://./symfony/symfony/fpPaymentPayPal/callback',
+        'callback' => 'http://example.com/callback',
         'callbackVersion' => '56.0',
         'Amt' => '10',
         'paymentType' => 'Authorization',

@@ -95,6 +95,54 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
   }
   
   /**
+   * Create PayPal account
+   *
+   * @param array $addData
+   * 
+   * @return string - redirect url
+   */
+  public function createAccount($addData = array())
+  {
+    $url = 'https://' . $this->options['url'] . '/AdaptiveAccounts/CreateAccount';
+    $connection = $this->getConnection($url);
+    $customer = $this->getContext()->getCustomer();
+    $bAddress = $customer->getCurrentBillingProfile();
+    $data = array(
+      'accountType' => 'PERSONAL',
+      'name.firstName' => $customer->getFirstName(),
+      'name.lastName' => $customer->getLastName(),
+      'address.line1' => $bAddress->getAddress(),
+      'address.city' => $bAddress->getCity(),
+      'address.state' => strtolower($bAddress->getState()),
+      'address.postalCode' => $bAddress->getZip(),
+      'address.countryCode' => $bAddress->getCountry(),
+      'citizenshipCountryCode' => $bAddress->getCountry(),
+      'contactPhoneNumber' => $bAddress->getPhone(),
+      'createAccountWebOptions.returnUrl' => $this->options['fields']['returnUrl'],
+      'currencyCode' => 'USD',
+      'emailAddress' => $customer->getEmailAddress(),
+      'registrationType' => 'Web',
+      'requestEnvelope.errorLanguage' => 'en_US',
+      'preferredLanguageCode' => 'en_US',
+//       'dateOfBirth' => '1968-01-01Z', //Required for Czech Republic, Japan, New Zealand, Israel, Switzerland, Sweden, Denmark, and Australia; otherwise optional. Use YYYY-MM-DDZ format; for example 1970-01-01Z
+    );
+    if ($addr2 = $bAddress->getAddress2()) {
+      $data['address.line2'] = $addr2;
+    }
+    $data = array_merge($data, $addData);
+    $this->getLoger()->addArray($data, 'CreateAccount ' . $url);
+    $headers = $this->options['headers'];
+    $headers['X-PAYPAL-DEVICE-IPADDRESS'] = $_SERVER['REMOTE_ADDR'];
+    $connection->setHeader($headers);
+    $this->response = $this->getProtocol()->toArray($connection->sendPostRequest($this->getProtocol()->fromArray($data)));
+    $this->getLoger()->addArray($this->response, 'Get CreateAccount response');
+    if ('SUCCESS' == strtoupper($this->response['responseEnvelope.ack'])) {
+      return empty($this->response['payKey'])?false:$this->response['payKey'];
+    }
+    return false;
+  }
+  
+  /**
    * (non-PHPdoc)
    * @see fpPaymentIpnBase::getUrl()
    */
@@ -151,17 +199,25 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
     foreach ($this->getUrlKeys() as $key) {
       $data[$key] = $data[$key] . '?orderId=' . $this->getOrderId();
     }
-    $this->getLoger()
-      ->addArray($data, 'Get token by ' . $this->getUrl());
+    $this->getLoger()->addArray($data, 'Get token by ' . $this->getUrl());
     $headers = $this->options['headers'];
     $headers['X-PAYPAL-DEVICE-IPADDRESS'] = $_SERVER['REMOTE_ADDR'];
     $connection->setHeader($headers);
     $this->response = $this->getProtocol()->toArray($connection->sendPostRequest($this->getProtocol()->fromArray($data)));
-    $this->getLoger()
-      ->addArray($this->response, 'Get token response');
+    $this->getLoger()->addArray($this->response, 'Get token response');
     if ('SUCCESS' == strtoupper($this->response['responseEnvelope.ack'])) {
       return empty($this->response['payKey'])?false:$this->response['payKey'];
     }
     return false;
+  }
+  
+  /**
+   * (non-PHPdoc)
+   * @see fpPaymentPayPalIpnBase::processNotifyValidate()
+   */
+  public function processNotifyValidate()
+  {
+    // TODO add check data!!!
+    return parent::processNotifyValidate();
   }
 }

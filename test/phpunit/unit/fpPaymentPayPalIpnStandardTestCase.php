@@ -15,8 +15,11 @@ class fpPaymentPayPalIpnStandardTestCase extends sfBasePhpunitTestCase
    */
   public function construct_and_getData()
   {
+    sfContext::getInstance()->getConfiguration()->loadHelpers(array('Url'));
     $obj = new fpPaymentPayPalIpnStandard();
-    $this->assertEquals($obj->getData(), array(
+    $data = $obj->getData();
+    $baseUrl = substr($data['cancel_return'], 0, -9);
+    $this->assertEquals($data, array(
         'amount_1' => 0,
         'item_name_1' => '',
         'quantity_1' => 0,
@@ -24,9 +27,9 @@ class fpPaymentPayPalIpnStandardTestCase extends sfBasePhpunitTestCase
         'cmd' => '_cart',
         'upload' => 1,
         'shipping' => 0.00,
-        'cancel_return' => 'http://./symfony/symfony/fpPaymentPayPal/cancelled',
-        'notify_url' => 'http://./symfony/symfony/fpPaymentPayPal/callback',
-        'return' => 'http://./symfony/symfony/fpPaymentPayPal/success',
+        'cancel_return' => $baseUrl . 'cancelled',
+        'notify_url' => $baseUrl . 'callback',
+        'return' => $baseUrl . 'success',
         'redirect_cmd' => '_xclick',
         'currency_code' => '',
         'invoice' => 0,

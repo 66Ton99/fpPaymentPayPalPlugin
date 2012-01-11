@@ -7,7 +7,7 @@ all:
   ipn_url: 'www.paypal.com'
   ipn_url_path: '/cgi-bin/webscr?'
   ipn:
-    standard: # DONE but did it wrong
+    standard: # DONE but do it wrong
       url: 'www.paypal.com'
       url_path: '/cgi-bin/webscr?'
       form_fields:

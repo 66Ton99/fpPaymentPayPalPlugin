@@ -61,8 +61,13 @@ class fpPaymentPayPalActionsBase extends sfActions
     $data = file_get_contents("php://input") . '&orderId=' . $request->getParameter('orderId');
     $payPal = fpPaymentContext::getInstance()->getPayPal();
     $payPal->getLoger()->add($data, 'Callback DATA');
+    
+    if (!$request->hasParameter('orderId')) return $this->renderText('FAIL');
+    $id = (int)$request->getParameter('orderId');
+    $order = fpPaymentOrderTable::getInstance()->findOneByIdAndStatus($id, fpPaymentOrderStatusEnum::IN_PROCESS);
+    fpPaymentContext::getInstance()->setOrderModel($order);
     if ($payPal->getIpn()->processCallback($data)) {
-      $this->renderText('OK');
+      return $this->renderText('OK');
     }
     $this->renderText('FAIL');
     return sfView::NONE;
