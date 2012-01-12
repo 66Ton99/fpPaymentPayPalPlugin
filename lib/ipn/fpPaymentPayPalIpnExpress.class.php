@@ -19,7 +19,8 @@ class fpPaymentPayPalIpnExpress extends fpPaymentPayPalIpnBase
     'url_path' => '/',
     'protocol' => 'nvp',
     'fields' => array(
-      'METHOD' => '', // SetExpressCheckout,
+      'METHOD' => '', // SetExpressCheckout, 
+      'VERSION' => '56.0',
       'USER' => '',
       'PWD' => '',
       'SIGNATURE' => '',
@@ -27,7 +28,7 @@ class fpPaymentPayPalIpnExpress extends fpPaymentPayPalIpnBase
       'returnURL' => '@fpPaymentPayPalPlugin_success',
       'cancelURL' => '@fpPaymentPayPalPlugin_cancelled',
       'callback' => '@fpPaymentPayPalPlugin_callback',
-        
+      'callbackVersion' => '56.0',
       'Amt' => '',
       'paymentType' => '', // Authorization or 'Sale' or 'Order'
       'CURRENCYCODE' => 'USD',
