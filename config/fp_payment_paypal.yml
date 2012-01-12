@@ -37,8 +37,7 @@ all:
       url_path: '/'
       protocol: 'nvp'
       fields:
-        METHOD: 'SetExpressCheckout' 
-        VERSION: '51.0'
+        METHOD: 'SetExpressCheckout'
         USER: ''
         PWD: ''
         SIGNATURE: ''
@@ -62,7 +61,6 @@ all:
         X-PAYPAL-APPLICATION-ID: '' # required 
         X-PAYPAL-REQUEST-DATA-FORMAT: 'NV'
         X-PAYPAL-RESPONSE-DATA-FORMAT: 'NV'
-        X-PAYPAL-SERVICE-VERSION: '1.7.0'
       fields:
         errorUrl: '@fpPaymentPayPalPlugin_error'
         returnUrl: '@fpPaymentPayPalPlugin_success'

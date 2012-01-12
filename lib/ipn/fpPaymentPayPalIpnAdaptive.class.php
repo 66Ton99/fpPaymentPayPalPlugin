@@ -25,7 +25,6 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
       'X-PAYPAL-DEVICE-IPADDRESS' => '',
      	'X-PAYPAL-REQUEST-DATA-FORMAT' => 'NV',
      	'X-PAYPAL-RESPONSE-DATA-FORMAT' => 'NV',
-      'X-PAYPAL-SERVICE-VERSION' => '1.7.0',
     ),
     'fields' => array(
       'errorUrl' => '@fpPaymentPayPalPlugin_error',
@@ -55,8 +54,10 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
     $configOptions = sfConfig::get('fp_payment_paypal_ipn', array('adaptive' => $this->options));
     $configOptions = $configOptions['adaptive'];
     $functionsClassName = sfConfig::get('fp_payment_functions_class_name',  'fpPaymentFunctions');
+    $configOptions['headers']['X-PAYPAL-DEVICE-IPADDRESS'] = $_SERVER['REMOTE_ADDR'];
     $this->options = $functionsClassName::arrayMergeRecursive($this->options, $configOptions, $options);
     $data = $this->options['fields'];
+    
     parent::setData($this->convertRoutesToUrls($data));
     $this->getContext()
       ->getDispatcher()
@@ -103,7 +104,7 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
    */
   public function createAccount($addData = array())
   {
-    $url = 'https://' . $this->options['url'] . '/AdaptiveAccounts/CreateAccount';
+    $url = $this->getUrl('/AdaptiveAccounts/CreateAccount');
     $connection = $this->getConnection($url);
     $customer = $this->getContext()->getCustomer();
     $bAddress = $customer->getCurrentBillingProfile();
@@ -131,9 +132,7 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
     }
     $data = array_merge($data, $addData);
     $this->getLoger()->addArray($data, 'CreateAccount ' . $url);
-    $headers = $this->options['headers'];
-    $headers['X-PAYPAL-DEVICE-IPADDRESS'] = $_SERVER['REMOTE_ADDR'];
-    $connection->setHeader($headers);
+    $connection->setHeader($this->options['headers']);
     $this->response = $this->getProtocol()->toArray($connection->sendPostRequest($this->getProtocol()->fromArray($data)));
     $this->getLoger()->addArray($this->response, 'Get CreateAccount response');
     if ('SUCCESS' == strtoupper($this->response['responseEnvelope.ack'])) {
@@ -146,9 +145,12 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
    * (non-PHPdoc)
    * @see fpPaymentIpnBase::getUrl()
    */
-  public function getUrl()
+  public function getUrl($path = null)
   {
-    return 'https://' . $this->options['url'] . $this->options['url_path'];
+    if (null === $path) {
+      $path = $this->options['url_path'];
+    }
+    return 'https://' . $this->options['url'] . $path;
   }
   
 	/**
@@ -200,9 +202,7 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
       $data[$key] = $data[$key] . '?orderId=' . $this->getOrderId();
     }
     $this->getLoger()->addArray($data, 'Get token by ' . $this->getUrl());
-    $headers = $this->options['headers'];
-    $headers['X-PAYPAL-DEVICE-IPADDRESS'] = $_SERVER['REMOTE_ADDR'];
-    $connection->setHeader($headers);
+    $connection->setHeader($this->options['headers']);
     $this->response = $this->getProtocol()->toArray($connection->sendPostRequest($this->getProtocol()->fromArray($data)));
     $this->getLoger()->addArray($this->response, 'Get token response');
     if ('SUCCESS' == strtoupper($this->response['responseEnvelope.ack'])) {
@@ -219,5 +219,31 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
   {
     // TODO add check data!!!
     return parent::processNotifyValidate();
+  }
+  
+  /**
+   * Checks is verified accout or not
+   *
+   * @param string $email
+   *
+   * @return bool
+   */
+  public function isVerifiedAccount($email)
+  {
+    $url = $this->getUrl('/AdaptiveAccounts/GetVerifiedStatus');
+    $connection = $this->getConnection($url);
+    $data = array(
+      'emailAddress' => $email,
+      'matchCriteria' => 'NONE'
+    );
+    $this->getLoger()->addArray($data, 'GetVerifiedStatus ' . $url);
+    $connection->setHeader($this->options['headers']);
+    $this->response = $this->getProtocol()->toArray($connection->sendPostRequest($this->getProtocol()->fromArray($data)));
+    $this->errors = $connection->getErrors();
+    $this->getLoger()->addArray($this->response, 'Get GetVerifiedStatus response');
+    if ('SUCCESS' == strtoupper($this->response['responseEnvelope.ack'])) {
+      return empty($this->response['accountStatus'])?false:('VERIFIED' == $this->response['accountStatus']);
+    }
+    return false;
   }
 }

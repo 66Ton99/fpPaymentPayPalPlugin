@@ -19,8 +19,7 @@ class fpPaymentPayPalIpnExpress extends fpPaymentPayPalIpnBase
     'url_path' => '/',
     'protocol' => 'nvp',
     'fields' => array(
-      'METHOD' => '', // SetExpressCheckout, 
-      'VERSION' => '56.0',
+      'METHOD' => '', // SetExpressCheckout,
       'USER' => '',
       'PWD' => '',
       'SIGNATURE' => '',
@@ -28,7 +27,7 @@ class fpPaymentPayPalIpnExpress extends fpPaymentPayPalIpnBase
       'returnURL' => '@fpPaymentPayPalPlugin_success',
       'cancelURL' => '@fpPaymentPayPalPlugin_cancelled',
       'callback' => '@fpPaymentPayPalPlugin_callback',
-      'callbackVersion' => '56.0',
+        
       'Amt' => '',
       'paymentType' => '', // Authorization or 'Sale' or 'Order'
       'CURRENCYCODE' => 'USD',
@@ -95,9 +94,12 @@ class fpPaymentPayPalIpnExpress extends fpPaymentPayPalIpnBase
    * (non-PHPdoc)
    * @see fpPaymentIpnBase::getUrl()
    */
-  public function getUrl()
+  public function getUrl($path = null)
   {
-    return 'https://' . $this->options['url'] . $this->options['url_path'] . '/' . $this->options['protocol'];
+    if (null === $path) {
+      $path = $this->options['url_path'] . '/' . $this->options['protocol'];
+    }
+    return 'https://' . $this->options['url'] . $path;
   }
   
   /**

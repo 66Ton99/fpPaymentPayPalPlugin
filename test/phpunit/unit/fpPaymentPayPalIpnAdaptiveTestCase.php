@@ -13,19 +13,20 @@ class fpPaymentPayPalIpnAdaptiveTestCase extends sfBasePhpunitTestCase
     'url' => 'svcs.sandbox.paypal.com',
     'url_path' => '/AdaptivePayments/Pay',
     'headers' => array(
-      'X-PAYPAL-SECURITY-USERID' => 'leftco_1317812970_biz_api1.66ton99.org.ua',
-      'X-PAYPAL-SECURITY-SIGNATURE' => 'AFcWxV21C7fd0v3bYYYRCpSSRl31A.Nlbkq0n7eMOKw24aijdEK5mhPA',
-      'X-PAYPAL-SECURITY-PASSWORD' => '1317813005',
+      'X-PAYPAL-SECURITY-USERID' => 'base_1326297340_biz_api1.66ton99.org.ua',
+      'X-PAYPAL-SECURITY-SIGNATURE' => 'AT3WsCEPtkm5hZOivSIR56i9mZ-pAMBq3bM0KHn8Eqv8cIi2mctzTOX-',
+      'X-PAYPAL-SECURITY-PASSWORD' => '1326297384',
       'X-PAYPAL-APPLICATION-ID' => 'APP-80W284485P519543T',
-      'X-PAYPAL-DEVICE-IPADDRESS' => '82.117.234.33',
+      'X-PAYPAL-SANDBOX-EMAIL-ADDRESS' => 'test@66ton99.org.ua',
+      'X-PAYPAL-DEVICE-IPADDRESS' => '127.0.0.1',
     ),
     'fields' => array(
       'errorUrl' => 'http://example.com/error',
       'returnUrl' => 'http://example.com/success',
       'cancelUrl' => 'http://example.com/cancelled',
-      'ipnNotificationUrl' => 'http://payment.tonpc.forma-dev.com/callback',
+      'ipnNotificationUrl' => 'http://example.com/callback',
       'actionType' => 'PAY',
-      'receiverList.receiver(0).email' => 'leftco_1317812970_biz@66ton99.org.ua',
+      'receiverList.receiver(0).email' => 'base_1326297340_biz@66ton99.org.ua',
       'receiverList.receiver(0).amount' => '100'
     )
   );
@@ -40,11 +41,11 @@ class fpPaymentPayPalIpnAdaptiveTestCase extends sfBasePhpunitTestCase
         'errorUrl' => 'http://example.com/error',
         'returnUrl' => 'http://example.com/success',
         'cancelUrl' => 'http://example.com/cancelled',
-        'ipnNotificationUrl' => 'http://payment.tonpc.forma-dev.com/callback',
+        'ipnNotificationUrl' => 'http://example.com/callback',
         'requestEnvelope.errorLanguage' => 'en_US',
         'currencyCode' => 'USD',
         'actionType' => 'PAY',
-        'receiverList.receiver(0).email' => 'leftco_1317812970_biz@66ton99.org.ua',
+        'receiverList.receiver(0).email' => 'base_1326297340_biz@66ton99.org.ua',
         'receiverList.receiver(0).amount' => '100',
       ));
   }
@@ -63,7 +64,7 @@ class fpPaymentPayPalIpnAdaptiveTestCase extends sfBasePhpunitTestCase
          ->method('getOrderId')
          ->will($this->returnValue(time()));
     if (false == $stub->getToken()) {
-      $this->fail(print_r($stub->getResponse(), true));
+      $this->fail(print_r($stub->getResponse(), true) . "\n Errors: " . print_r($stub->getErrors(), true));
     }
   }
 
@@ -92,6 +93,20 @@ class fpPaymentPayPalIpnAdaptiveTestCase extends sfBasePhpunitTestCase
     fpPaymentContext::getInstance()->setOrderModel($order);
     $this->assertTrue($stub->processCallback($data));
     $this->assertTrue($stub->isVerified());
+  }
+  
+  /**
+   * @test
+   */
+  public function isVerifiedAccount()
+  {
+    $stub = $this->getMock('fpPaymentPayPalIpnAdaptive', array('getLoger'), array($this->options));
     
+    $stub->expects($this->any())
+      ->method('getLoger')
+      ->will($this->returnValue(new fpPaymentTestNullObject()));
+    if (false == $stub->isVerifiedAccount('base_1326297340_biz@66ton99.org.ua')) {
+      $this->fail(print_r($stub->getResponse(), true) . "\n Errors: " . print_r($stub->getErrors(), true));
+    }
   }
 }
