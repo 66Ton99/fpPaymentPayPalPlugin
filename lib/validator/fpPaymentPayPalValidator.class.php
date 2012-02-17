@@ -12,6 +12,16 @@ class fpPaymentPayPalValidator extends sfValidatorEmail
   
   /**
    * (non-PHPdoc)
+   * @see sfValidatorEmail::configure()
+   */
+  protected function configure($options = array(), $messages = array())
+  {
+    $this->addMessage('does_not_exist', 'Account doesn\'t exist');
+    parent::configure($options, $messages);
+  }
+  
+  /**
+   * (non-PHPdoc)
    * @see sfValidatorRegex::doClean()
    */
   protected function doClean($value)
