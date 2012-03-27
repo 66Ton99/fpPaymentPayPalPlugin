@@ -5,13 +5,13 @@
  *
  * @package    fpPayment
  * @subpackage PayPal
- * @author		 Ton Sharp <Forma-PRO@66ton99.org.ua>
+ * @author     Ton Sharp <Forma-PRO@66ton99.org.ua>
  */
 class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
 {
-  
+
   protected $urlsKeys = array('errorUrl', 'returnUrl', 'cancelUrl', 'ipnNotificationUrl');
-  
+
   protected $options = array(
     'url' => 'svcs.paypal.com',
     'url_path' => '/AdaptivePayments/Pay',
@@ -23,8 +23,8 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
       'X-PAYPAL-SECURITY-PASSWORD' => '',
       'X-PAYPAL-APPLICATION-ID' => '',
       'X-PAYPAL-DEVICE-IPADDRESS' => '',
-     	'X-PAYPAL-REQUEST-DATA-FORMAT' => 'NV',
-     	'X-PAYPAL-RESPONSE-DATA-FORMAT' => 'NV',
+       'X-PAYPAL-REQUEST-DATA-FORMAT' => 'NV',
+       'X-PAYPAL-RESPONSE-DATA-FORMAT' => 'NV',
     ),
     'fields' => array(
       'errorUrl' => '@fpPaymentPayPalPlugin_error',
@@ -54,10 +54,12 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
     $configOptions = sfConfig::get('fp_payment_paypal_ipn', array('adaptive' => $this->options));
     $configOptions = $configOptions['adaptive'];
     $functionsClassName = sfConfig::get('fp_payment_functions_class_name',  'fpPaymentFunctions');
-    $configOptions['headers']['X-PAYPAL-DEVICE-IPADDRESS'] = $_SERVER['REMOTE_ADDR'];
+    if (!empty($_SERVER['REMOTE_ADDR'])) {
+      $configOptions['headers']['X-PAYPAL-DEVICE-IPADDRESS'] = $_SERVER['REMOTE_ADDR'];
+    }
     $this->options = $functionsClassName::arrayMergeRecursive($this->options, $configOptions, $options);
     $data = $this->options['fields'];
-    
+
     parent::setData($this->convertRoutesToUrls($data));
     $this->getContext()
       ->getDispatcher()
@@ -66,10 +68,10 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
       ->getDispatcher()
         ->connect('fp_payment.on_process', array($this, 'addItemsToValues'));
   }
-  
+
   /**
    * returns the paypal payment status
-   * 
+   *
    * @TODO complet
    *
    * @return string
@@ -94,12 +96,12 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
         ->add('Redirecting to ' . $this->getRedirectUrl());
     return $this;
   }
-  
+
   /**
    * Create PayPal account
    *
    * @param array $addData
-   * 
+   *
    * @return string - redirect url
    */
   public function createAccount($addData = array())
@@ -140,7 +142,7 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
     }
     return false;
   }
-  
+
   /**
    * (non-PHPdoc)
    * @see fpPaymentIpnBase::getUrl()
@@ -152,8 +154,8 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
     }
     return 'https://' . $this->options['url'] . $path;
   }
-  
-	/**
+
+  /**
    * Event handler. Add items to the values
    *
    * @param sfEvent $event - Keys: context, values
@@ -169,7 +171,7 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
     $values['currencyCode'] = $context->getOrderModel()->getCurrency();
     $values['customerId'] = $context->getOrderModel()->getCustomerId();
   }
-  
+
   /**
    * Event handler. Add order to values
    *
@@ -188,12 +190,12 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
     $order->setStatus(fpPaymentOrderStatusEnum::IN_PROCESS);
     $order->save();
   }
-  
-	/**
-	 * Get token
-	 *
-	 * @return string|false
-	 */
+
+  /**
+   * Get token
+   *
+   * @return string|false
+   */
   public function getToken()
   {
     $connection = $this->getConnection($this->getUrl());
@@ -210,7 +212,7 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
     }
     return false;
   }
-  
+
   /**
    * (non-PHPdoc)
    * @see fpPaymentPayPalIpnBase::processNotifyValidate()
@@ -220,7 +222,7 @@ class fpPaymentPayPalIpnAdaptive extends fpPaymentPayPalIpnBase
     // TODO add check data!!!
     return parent::processNotifyValidate();
   }
-  
+
   /**
    * Checks is verified accout or not
    *

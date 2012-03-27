@@ -5,13 +5,13 @@
  *
  * @package    fpPayment
  * @subpackage PayPal
- * @author		 Ton Sharp <Forma-PRO@66ton99.org.ua>
+ * @author     Ton Sharp <Forma-PRO@66ton99.org.ua>
  */
 class fpPaymentPayPalIpnExpress extends fpPaymentPayPalIpnBase
 {
-  
+
   protected $urlsKeys = array('errorURL', 'returnURL', 'cancelURL', 'callback');
-  
+
   protected $options = array(
     'checkout_url' => 'www.paypal.com',
     'checkout_url_path' => '/webscr&cmd=_express-checkout&token=',
@@ -19,7 +19,7 @@ class fpPaymentPayPalIpnExpress extends fpPaymentPayPalIpnBase
     'url_path' => '/',
     'protocol' => 'nvp',
     'fields' => array(
-      'METHOD' => '', // SetExpressCheckout, 
+      'METHOD' => '', // SetExpressCheckout,
       'VERSION' => '56.0',
       'USER' => '',
       'PWD' => '',
@@ -46,12 +46,12 @@ class fpPaymentPayPalIpnExpress extends fpPaymentPayPalIpnBase
   public function __construct($options = array())
   {
     $configOptions = sfConfig::get('fp_payment_paypal_ipn', array('express' => $this->options));
-    
+
     $configOptions = $configOptions['express'];
     $functionsClassName = sfConfig::get('fp_payment_functions_class_name',  'fpPaymentFunctions');
     $this->options = $functionsClassName::arrayMergeRecursive($configOptions, $options);
     $data = $this->options['fields'];
-    
+
     parent::setData($this->convertRoutesToUrls($data));
     $this->getContext()
       ->getDispatcher()
@@ -63,7 +63,7 @@ class fpPaymentPayPalIpnExpress extends fpPaymentPayPalIpnBase
 
   /**
    * returns the paypal payment status
-   * 
+   *
    * @TODO complet
    *
    * @return string
@@ -90,7 +90,7 @@ class fpPaymentPayPalIpnExpress extends fpPaymentPayPalIpnBase
     }
     return $this;
   }
-  
+
   /**
    * (non-PHPdoc)
    * @see fpPaymentIpnBase::getUrl()
@@ -102,7 +102,7 @@ class fpPaymentPayPalIpnExpress extends fpPaymentPayPalIpnBase
     }
     return 'https://' . $this->options['url'] . $path;
   }
-  
+
   /**
    * Checks come data
    *
@@ -127,8 +127,8 @@ class fpPaymentPayPalIpnExpress extends fpPaymentPayPalIpnBase
       ->add($this->response, 'Get notify data');
     return $this;
   }
-  
-	/**
+
+  /**
    * Event handler. Add items to the values
    *
    * @param sfEvent $event - Keys: context, values
@@ -159,7 +159,7 @@ class fpPaymentPayPalIpnExpress extends fpPaymentPayPalIpnBase
     }
     $values['currency_code'] = $context->getOrderModel()->getCurrency();
   }
-  
+
   /**
    * Event handler. Add order to values
    *
@@ -179,7 +179,7 @@ class fpPaymentPayPalIpnExpress extends fpPaymentPayPalIpnBase
     $order->setStatus(fpPaymentOrderStatusEnum::IN_PROCESS);
     $order->save();
   }
-  
+
   /**
    * (non-PHPdoc)
    * @see fpPaymentPayPalIpnBase::getToken()
@@ -189,7 +189,7 @@ class fpPaymentPayPalIpnExpress extends fpPaymentPayPalIpnBase
     $connection = $this->getConnection($this->getUrl());
     $data = $this->getData();
     foreach ($this->getUrlKeys() as $key) {
-      $data[$key] = $data[$key] . urlencode('?orderId=' . $orderId);
+      $data[$key] = $data[$key] . urlencode('?orderId=' . $this->getOrderId());
     }
     $this->getLoger()
       ->addArray($data, 'Get token by ' . $this->getUrl());
